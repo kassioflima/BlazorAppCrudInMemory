@@ -1,0 +1,57 @@
+﻿@page "/categories/delete"
+@inject BlazorAppCrudInMemory.Data.AppDbContext DB
+@using BlazorAppCrudInMemory.Models
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Delete</PageTitle>
+
+<h1>Delete</h1>
+
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <h4>Category</h4>
+    <hr />
+    @if (category is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Name</dt>
+            <dd class="col-sm-10">@category.Name</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Description</dt>
+            <dd class="col-sm-10">@category.Description</dd>
+        </dl>
+        <EditForm method="post" Model="category" OnValidSubmit="DeleteCategory" FormName="delete" Enhance>
+            <button type="submit" class="btn btn-danger" disabled="@(category is null)">Delete</button> |
+            <a href="/categories">Back to List</a>
+        </EditForm>
+    }
+</div>
+
+@code {
+    Category? category;
+
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        category = await DB.Categories.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (category is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    public async Task DeleteCategory()
+    {
+        DB.Categories.Remove(category!);
+        await DB.SaveChangesAsync();
+        NavigationManager.NavigateTo("/categories");
+    }
+}
